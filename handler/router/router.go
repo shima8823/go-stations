@@ -2,19 +2,25 @@ package router
 
 import (
 	"database/sql"
-	"github.com/TechBowl-japan/go-stations/handler"
-	"github.com/TechBowl-japan/go-stations/service"
 	"net/http"
+
+	"github.com/TechBowl-japan/go-stations/handler"
+	"github.com/TechBowl-japan/go-stations/handler/middleware"
+	"github.com/TechBowl-japan/go-stations/service"
 )
 
 func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	// register routes
 	mux := http.NewServeMux()
+	todoService := service.NewTODOService(todoDB)
+
 	helthzHandler := handler.NewHealthzHandler()
-	TODOService := service.NewTODOService(todoDB)
-	TODOHandler := handler.NewTODOHandler(TODOService)
+	todoHandler := handler.NewTODOHandler(todoService)
+	doPanicHandler := handler.NewDoPanicHandler()
+
 	mux.Handle("/healthz", helthzHandler)
-	mux.Handle("/todos", TODOHandler)
+	mux.Handle("/todos", todoHandler)
+	mux.Handle("/do_panic", middleware.Recovery(doPanicHandler))
 
 	return mux
 }
