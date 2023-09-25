@@ -9,6 +9,15 @@ import (
 	"github.com/TechBowl-japan/go-stations/service"
 )
 
+type middlewareType func(http.Handler) http.Handler
+
+func applyMiddleware(h http.Handler, middlewares ...middlewareType) http.Handler {
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		h = middlewares[i](h)
+	}
+	return h
+}
+
 func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	// register routes
 	mux := http.NewServeMux()
@@ -18,9 +27,15 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	todoHandler := handler.NewTODOHandler(todoService)
 	doPanicHandler := handler.NewDoPanicHandler()
 
-	mux.Handle("/healthz", helthzHandler)
-	mux.Handle("/todos", middleware.OSParserMiddleware(todoHandler))
-	mux.Handle("/do_panic", middleware.Recovery(doPanicHandler))
+	middlewares := []middlewareType{
+		middleware.OSParserMiddleware,
+		middleware.AccessLogMiddleware,
+		middleware.Recovery,
+	}
+
+	mux.Handle("/healthz", applyMiddleware(helthzHandler, middlewares...))
+	mux.Handle("/todos", applyMiddleware(todoHandler, middlewares...))
+	mux.Handle("/do_panic", applyMiddleware(doPanicHandler, middlewares...))
 
 	return mux
 }
