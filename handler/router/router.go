@@ -28,13 +28,15 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	doPanicHandler := handler.NewDoPanicHandler()
 
 	middlewares := []middlewareType{
-		middleware.OSParserMiddleware,
-		middleware.AccessLogMiddleware,
+		middleware.OSParser,
+		middleware.AccessLog,
 		middleware.Recovery,
 	}
 
+	todosMiddlewares := append(middlewares, middleware.BasicAuth)
+
 	mux.Handle("/healthz", applyMiddleware(helthzHandler, middlewares...))
-	mux.Handle("/todos", applyMiddleware(todoHandler, middlewares...))
+	mux.Handle("/todos", applyMiddleware(todoHandler, todosMiddlewares...))
 	mux.Handle("/do_panic", applyMiddleware(doPanicHandler, middlewares...))
 
 	return mux
