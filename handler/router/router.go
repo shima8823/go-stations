@@ -26,6 +26,7 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	helthzHandler := handler.NewHealthzHandler()
 	todoHandler := handler.NewTODOHandler(todoService)
 	doPanicHandler := handler.NewDoPanicHandler()
+	longHandler := handler.NewLong()
 
 	middlewares := []middlewareType{
 		middleware.OSParser,
@@ -38,6 +39,7 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	mux.Handle("/healthz", applyMiddleware(helthzHandler, middlewares...))
 	mux.Handle("/todos", applyMiddleware(todoHandler, todosMiddlewares...))
 	mux.Handle("/do_panic", applyMiddleware(doPanicHandler, middlewares...))
+	mux.Handle("/long", applyMiddleware(longHandler, middlewares...))
 
 	return mux
 }
