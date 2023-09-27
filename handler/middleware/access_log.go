@@ -14,7 +14,7 @@ type accessLogInfo struct {
 	OS        string
 }
 
-func AccessLogMiddleware(next http.Handler) http.Handler {
+func AccessLog(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		next.ServeHTTP(w, r)
